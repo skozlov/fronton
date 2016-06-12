@@ -9,13 +9,14 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>fronton-core</artifactId>
+	<artifactId>fronton-xml</artifactId>
 
 	<dependencies>
 		<dependency>
-			<groupId>org.jsoup</groupId>
-			<artifactId>jsoup</artifactId>
-			<version>1.9.2</version>
+			<groupId>ru.biserhobby</groupId>
+			<artifactId>fronton-core</artifactId>
+			<version>0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
+
 </project>

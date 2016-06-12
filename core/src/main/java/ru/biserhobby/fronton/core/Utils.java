@@ -14,7 +14,8 @@ public final class Utils {
 	private Utils(){}
 
 	public static Elements select(Element element, String selector) throws InvalidSelectorException{
-		//todo check
+		checkArgumentNotNull(element, "element");
+		checkArgumentNotEmpty(selector, "selector");
 		try{
 			return element.select(selector);
 		} catch (Selector.SelectorParseException e){
@@ -26,9 +27,12 @@ public final class Utils {
 			Element template, String templateContainerSelector, Element source, String sourceContainerSelector)
 			throws InvalidSelectorException{
 
-		//todo check
-		String htmlToInsert = Utils.select(source, sourceContainerSelector).html();
-		Utils.select(template, templateContainerSelector).html(htmlToInsert);
+		checkArgumentNotNull(template, "template");
+		checkArgumentNotEmpty(templateContainerSelector, "templateContainerSelector");
+		checkArgumentNotNull(source, "source");
+		checkArgumentNotEmpty(sourceContainerSelector, "sourceContainerSelector");
+		String htmlToInsert = select(source, sourceContainerSelector).html();
+		select(template, templateContainerSelector).html(htmlToInsert);
 	}
 
 	public static Document parse(File file, Charset charset) throws HtmlReadException{

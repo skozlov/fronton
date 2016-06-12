@@ -4,16 +4,12 @@ import org.jsoup.nodes.Document;
 
 import java.io.*;
 
-public class TopPages {
+public class TopPages implements Runnable {
 	private final Pages pages;
 
 	public TopPages(Pages pages){
 		Utils.checkArgumentNotNull(pages, "pages");
 		this.pages = pages;
-	}
-
-	public void process() throws FrontonException{
-		pages.processInner().parallel().forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
 	}
 
 	private void writeDocument(Document document, File file) throws FrontonIOException{
@@ -24,5 +20,10 @@ public class TopPages {
 		} catch (IOException e) {
 			throw new FrontonIOException(e);
 		}
+	}
+
+	@Override
+	public void run() throws FrontonException{
+		pages.processInner().parallel().forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
 	}
 }

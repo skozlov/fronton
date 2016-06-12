@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-public class SimplePage {
+public class SimplePage implements Runnable {
 	private final Path source;
 	private final Path target;
 
@@ -16,7 +16,8 @@ public class SimplePage {
 		this.target = target;
 	}
 
-	public void process() throws FrontonIOException{
+	@Override
+	public void run() throws FrontonIOException{
 		if(!source.equals(target)) {
 			try {
 				Files.copy(source, target, StandardCopyOption.values());

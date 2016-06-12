@@ -12,13 +12,14 @@ public class Pages {
 	private final File template;
 	private final Charset charset;
 	private final String templateContainerSelector;
-	private final Stream<? extends BiFunction<? super Document, ? super String, ? extends Stream<Map.Entry<? extends Document, ? extends File>>>> pages;
+	private final Stream<? extends BiFunction<Document, String, Stream<Map.Entry<Document, File>>>>
+			pages;
 
 	public Pages(
 			File template,
 			Charset charset,
 			String templateContainerSelector,
-			Stream<? extends BiFunction<? super Document, ? super String, ? extends Stream<Map.Entry<? extends Document, ? extends File>>>> pages) {
+			Stream<? extends BiFunction<Document, String, Stream<Map.Entry<Document, File>>>> pages) {
 
 		Utils.checkArgumentNotNull(template, "template");
 		Utils.checkArgumentNotNull(charset, "charset");
