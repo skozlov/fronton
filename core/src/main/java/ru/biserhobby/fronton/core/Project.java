@@ -11,7 +11,7 @@ public class Project implements Runnable {
 	}
 
 	@Override
-	public void run() {
+	public void run() throws FrontonException{
 		topDirectives.parallel().forEach(Runnable::run);
 	}
 }
