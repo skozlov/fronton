@@ -1,0 +1,22 @@
+<!ELEMENT project (simplePage|topPages)+>
+<!ATTLIST project charset CDATA #REQUIRED>
+
+<!ELEMENT simplePage EMPTY>
+<!ATTLIST simplePage src CDATA #REQUIRED>
+<!ATTLIST simplePage target CDATA #IMPLIED>
+
+<!ELEMENT topPages (page|pages)+>
+<!ATTLIST topPages template CDATA #REQUIRED>
+<!ATTLIST topPages container CDATA #IMPLIED "body">
+
+<!ELEMENT page EMPTY>
+<!ATTLIST page action (insert|removeContainer) #IMPLIED "insert">
+<!ATTLIST page src CDATA #IMPLIED>
+<!ATTLIST page target CDATA #IMPLIED>
+<!ATTLIST page sourceContainer CDATA #IMPLIED "body">
+
+<!ELEMENT pages (page|pages)+>
+<!ATTLIST pages action CDATA #FIXED "insert">
+<!ATTLIST pages sourceContainer CDATA #IMPLIED "body">
+<!ATTLIST pages template CDATA #REQUIRED>
+<!ATTLIST pages container CDATA #IMPLIED "body">

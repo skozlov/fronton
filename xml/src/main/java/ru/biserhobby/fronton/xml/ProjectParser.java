@@ -39,6 +39,8 @@ public class ProjectParser implements Function<File, Project> {
 	private final File targetBasedir;
 
 	public ProjectParser(File sourceBasedir, File targetBasedir) {
+		Utils.checkArgumentNotNull(sourceBasedir, "sourceBasedir");
+		Utils.checkArgumentNotNull(targetBasedir, "targetBasedir");
 		this.sourceBasedir = sourceBasedir;
 		this.targetBasedir = targetBasedir;
 	}
@@ -75,7 +77,7 @@ public class ProjectParser implements Function<File, Project> {
 		} else if("pages".equals(tagName)){
 			return parseTopPages(element, charset);
 		} else {
-			throw new ProjectParsingException(String.format("Illegal top-level tag `%s`", tagName));
+			throw new ProjectParsingException(String.format("Illegal tag `%s` (%s)", tagName, getLocation(element)));
 		}
 	}
 
@@ -96,23 +98,6 @@ public class ProjectParser implements Function<File, Project> {
 				charset,
 				parseTemplateContainerSelector(element),
 				parseSubPages(element, charset));
-	}
-
-	private File parseTemplate(Element element){
-		return new File(sourceBasedir, getNotEmptyAttr(element, "template"));
-	}
-
-	private String parseTemplateContainerSelector(Element element){
-		return parseContainerSelector(element, "container");
-	}
-
-	private String parseSourceContainerSelector(Element element){
-		return parseContainerSelector(element, "sourceContainer");
-	}
-
-	private String parseContainerSelector(Element element, String attrName){
-		String selector = element.getAttribute(attrName);
-		return (selector == null || selector.isEmpty()) ? "body" : selector;
 	}
 
 	private Stream<? extends BiFunction<org.jsoup.nodes.Document, String, Stream<Map.Entry<org.jsoup.nodes.Document, File>>>>
@@ -136,32 +121,6 @@ public class ProjectParser implements Function<File, Project> {
 	}
 
 	private BiFunction<org.jsoup.nodes.Document, String, Stream<Map.Entry<org.jsoup.nodes.Document, File>>>
-		parseInnerPage(Element element) {
-
-		String action = getNotEmptyNullableAttr(element, "action");
-		if(action == null || action.equals("insert")){
-			return parseInsert(element);
-		} else if("removeContainer".equals(action)){
-			return parseRemoveContainer(element);
-		} else {
-			throw new ProjectParsingException(String.format(
-					"Unsupported action `%s` (%s)", action, getLocation(element)));
-		}
-	}
-
-	private RemoveContainer parseRemoveContainer(Element element) {
-		return new RemoveContainer(parsePageTarget(element));
-	}
-
-	private Insert parseInsert(Element element) {
-		Map.Entry<File, File> sourceAndTarget = parsePageSourceAndTarget(element);
-		File source = sourceAndTarget.getKey();
-		File target = sourceAndTarget.getValue();
-		String sourceContainerSelector = parseSourceContainerSelector(element);
-		return new Insert(source, sourceContainerSelector, target);
-	}
-
-	private BiFunction<org.jsoup.nodes.Document, String, Stream<Map.Entry<org.jsoup.nodes.Document, File>>>
 		parseInnerPages(Element element, Charset charset) {
 
 		String action = getNotEmptyNullableAttr(element, "action");
@@ -179,16 +138,41 @@ public class ProjectParser implements Function<File, Project> {
 		return new InsertPages(sourceContainerSelector, pages);
 	}
 
+	private BiFunction<org.jsoup.nodes.Document, String, Stream<Map.Entry<org.jsoup.nodes.Document, File>>>
+		parseInnerPage(Element element) {
+
+		String action = getNotEmptyNullableAttr(element, "action");
+		if(action == null || action.equals("insert")){
+			return parseInsert(element);
+		} else if("removeContainer".equals(action)){
+			return parseRemoveContainer(element);
+		} else {
+			throw new ProjectParsingException(String.format(
+					"Unsupported action `%s` (%s)", action, getLocation(element)));
+		}
+	}
+
+	private Insert parseInsert(Element element) {
+		Map.Entry<File, File> sourceAndTarget = parsePageSourceAndTarget(element);
+		File source = sourceAndTarget.getKey();
+		File target = sourceAndTarget.getValue();
+		String sourceContainerSelector = parseSourceContainerSelector(element);
+		return new Insert(source, sourceContainerSelector, target);
+	}
+
+	private RemoveContainer parseRemoveContainer(Element element) {
+		return new RemoveContainer(parsePageTarget(element));
+	}
+
+	private File parsePageTarget(Element element){
+		String name = getNotEmptyAttr(element, "target");
+		return new File(targetBasedir, name);
+	}
+
 	private Map.Entry<File, File> parsePageSourceAndTarget(Element element){
-		String sourceName = getNotEmptyNullableAttr(element, "src");
+		String sourceName = getNotEmptyAttr(element, "src");
 		String targetName = getNotEmptyNullableAttr(element, "target");
-		if(sourceName == null){
-			if(targetName == null) {
-				throw new ProjectParsingException(String.format(
-						"Neither `src` nor `target` attribute is specified (%s)", getLocation(element)));
-			}
-			sourceName = targetName;
-		} else if(targetName == null){
+		if(targetName == null){
 			targetName = sourceName;
 		}
 		File source = new File(sourceBasedir, sourceName);
@@ -196,9 +180,21 @@ public class ProjectParser implements Function<File, Project> {
 		return new AbstractMap.SimpleImmutableEntry<>(source, target);
 	}
 
-	private File parsePageTarget(Element element){
-		String name = getNotEmptyAttr(element, "target");
-		return new File(targetBasedir, name);
+	private String parseTemplateContainerSelector(Element element){
+		return parseContainerSelector(element, "container");
+	}
+
+	private String parseSourceContainerSelector(Element element){
+		return parseContainerSelector(element, "sourceContainer");
+	}
+
+	private String parseContainerSelector(Element element, String attrName){
+		String selector = getNotEmptyNullableAttr(element, attrName);
+		return (selector == null) ? "body" : selector;
+	}
+
+	private File parseTemplate(Element element){
+		return new File(sourceBasedir, getNotEmptyAttr(element, "template"));
 	}
 
 	private static Stream<Element> getElements(NodeList nodes){
