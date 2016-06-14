@@ -13,6 +13,7 @@ public class TopPages implements Runnable {
 	}
 
 	private void writeDocument(Document document, File file) throws FrontonIOException{
+		file.getParentFile().mkdirs();
 		try(OutputStream stream = new FileOutputStream(file)) {
 			try(Writer writer = new OutputStreamWriter(stream, document.charset())){
 				writer.write(document.toString());

@@ -16,9 +16,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.AbstractMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -72,9 +74,9 @@ public class ProjectParser implements Function<File, Project> {
 
 	private Runnable parseTopDirective(Element element, Charset charset){
 		String tagName = element.getTagName();
-		if("page".equals(tagName)){
+		if("simplePage".equals(tagName)){
 			return parseSimplePage(element);
-		} else if("pages".equals(tagName)){
+		} else if("topPages".equals(tagName)){
 			return parseTopPages(element, charset);
 		} else {
 			throw new ProjectParsingException(String.format("Illegal tag `%s` (%s)", tagName, getLocation(element)));
@@ -197,18 +199,6 @@ public class ProjectParser implements Function<File, Project> {
 		return new File(sourceBasedir, getNotEmptyAttr(element, "template"));
 	}
 
-	private static Stream<Element> getElements(NodeList nodes){
-		return IntStream.range(0, nodes.getLength()).mapToObj(i -> {
-			Node node = nodes.item(i);
-			if(node instanceof Element){
-				return (Element)node;
-			} else {
-				throw new ProjectParsingException(String.format(
-						"Only elements are allowed, but found `%s` (%s)", node.getClass(), node));
-			}
-		});
-	}
-
 	private static String getNotEmptyAttr(Element element, String attrName){
 		String value = getNotEmptyNullableAttr(element, attrName);
 		if(value == null){
@@ -219,33 +209,44 @@ public class ProjectParser implements Function<File, Project> {
 	}
 
 	private static String getNotEmptyNullableAttr(Element element, String attrName){
+		if(!element.hasAttribute(attrName)){
+			return null;
+		}
 		String value = element.getAttribute(attrName);
-		if(value != null && value.isEmpty()){
+		if(value.isEmpty()){
 			throw new ProjectParsingException(String.format(
 					"Illegal empty attribute `%s` (%s)", attrName, getLocation(element)));
 		}
 		return value;
 	}
 
-	private static String getLocation(Node node){
-		return getLocationBuilder(node).toString();
+	private static String getLocation(Element element){
+		return getLocationBuilder(element).toString();
 	}
 
-	private static StringBuilder getLocationBuilder(Node node){
-		Node parent = node.getParentNode();
-		if(parent == null){
-			return new StringBuilder(((Element)node).getTagName());
+	private static StringBuilder getLocationBuilder(Element element){
+		Node parent = element.getParentNode();
+		if(parent instanceof Document){
+			return new StringBuilder(element.getTagName());
 		} else {
-			StringBuilder builder = getLocationBuilder(parent).append('[');
-			NodeList children = parent.getChildNodes();
-			for(int i = 0; i < children.getLength(); i++){
-				if(node == children.item(i)){
+			StringBuilder builder = getLocationBuilder((Element) parent).append('[');
+			List<Element> elements = getElements(parent.getChildNodes()).collect(Collectors.toList());
+			int i = 0;
+			for(Element e : elements){
+				if(element.isSameNode(e)){
 					builder.append(i);
 					break;
 				}
+				i++;
 			}
 			builder.append(']');
 			return builder;
 		}
+	}
+
+	private static Stream<Element> getElements(NodeList nodes){
+		return IntStream.range(0, nodes.getLength())
+				.mapToObj(nodes::item)
+				.flatMap(node -> (node instanceof Element) ? Stream.of((Element) node) : Stream.empty());
 	}
 }

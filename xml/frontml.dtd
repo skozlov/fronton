@@ -7,16 +7,16 @@
 
 <!ELEMENT topPages (page|pages)+>
 <!ATTLIST topPages template CDATA #REQUIRED>
-<!ATTLIST topPages container CDATA #IMPLIED "body">
+<!ATTLIST topPages container CDATA "body">
 
 <!ELEMENT page EMPTY>
-<!ATTLIST page action (insert|removeContainer) #IMPLIED "insert">
+<!ATTLIST page action (insert|removeContainer) "insert">
 <!ATTLIST page src CDATA #IMPLIED>
 <!ATTLIST page target CDATA #IMPLIED>
-<!ATTLIST page sourceContainer CDATA #IMPLIED "body">
+<!ATTLIST page sourceContainer CDATA "body">
 
 <!ELEMENT pages (page|pages)+>
 <!ATTLIST pages action CDATA #FIXED "insert">
-<!ATTLIST pages sourceContainer CDATA #IMPLIED "body">
+<!ATTLIST pages sourceContainer CDATA "body">
 <!ATTLIST pages template CDATA #REQUIRED>
-<!ATTLIST pages container CDATA #IMPLIED "body">
+<!ATTLIST pages container CDATA "body">

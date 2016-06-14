@@ -20,6 +20,7 @@ public class SimplePage implements Runnable {
 	public void run() throws FrontonIOException{
 		if(!source.equals(target)) {
 			try {
+				target.getParent().toFile().mkdirs();
 				Files.copy(source, target, StandardCopyOption.values());
 			} catch (IOException e) {
 				throw new FrontonIOException(e);
