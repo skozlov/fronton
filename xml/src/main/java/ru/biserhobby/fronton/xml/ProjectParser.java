@@ -6,6 +6,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import ru.biserhobby.fronton.core.*;
+import ru.biserhobby.fronton.core.CustomAttributeProcessor;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,14 +40,18 @@ public class ProjectParser implements Function<File, Project> {
 
 	private final File sourceBasedir;
 	private final File targetBasedir;
+	private final CustomAttributeProcessor customAttributeProcessor;
 
-	public ProjectParser(File sourceBasedir, File targetBasedir) {
+	public ProjectParser(File sourceBasedir, File targetBasedir, CustomAttributeProcessor customAttributeProcessor) {
 		Utils.checkArgumentNotNull(sourceBasedir, "sourceBasedir");
 		Utils.checkArgumentNotNull(targetBasedir, "targetBasedir");
+		Utils.checkArgumentNotNull(customAttributeProcessor, "customAttributeProcessor");
 		this.sourceBasedir = sourceBasedir;
 		this.targetBasedir = targetBasedir;
+		this.customAttributeProcessor = customAttributeProcessor;
 	}
 
+	@Override
 	public Project apply(File file) throws ProjectParsingException, FrontonIOException {
 		Utils.checkArgumentNotNull(file, "file");
 		try {
@@ -63,7 +68,7 @@ public class ProjectParser implements Function<File, Project> {
 		}
 	}
 
-	private Charset parseCharset(Element root) throws ProjectParsingException{
+	private Charset parseCharset(Element root) {
 		String name = getNotEmptyAttr(root, "charset");
 		try {
 			return Charset.forName(name);
@@ -75,7 +80,7 @@ public class ProjectParser implements Function<File, Project> {
 	private Runnable parseTopDirective(Element element, Charset charset){
 		String tagName = element.getTagName();
 		if("simplePage".equals(tagName)){
-			return parseSimplePage(element);
+			return parseSimplePage(element, charset);
 		} else if("topPages".equals(tagName)){
 			return parseTopPages(element, charset);
 		} else {
@@ -83,15 +88,15 @@ public class ProjectParser implements Function<File, Project> {
 		}
 	}
 
-	private SimplePage parseSimplePage(Element element){
+	private SimplePage parseSimplePage(Element element, Charset charset){
 		Map.Entry<File, File> sourceAndTarget = parsePageSourceAndTarget(element);
 		File source = sourceAndTarget.getKey();
 		File target = sourceAndTarget.getValue();
-		return new SimplePage(source.toPath(), target.toPath());
+		return new SimplePage(source, target, charset, customAttributeProcessor);
 	}
 
 	private TopPages parseTopPages(Element element, Charset charset){
-		return new TopPages(parsePages(element, charset));
+		return new TopPages(parsePages(element, charset), customAttributeProcessor);
 	}
 
 	private Pages parsePages(Element element, Charset charset){

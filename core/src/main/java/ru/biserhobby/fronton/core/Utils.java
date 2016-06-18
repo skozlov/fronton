@@ -6,11 +6,15 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.jsoup.select.Selector;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class Utils {
+	private static final Pattern CUSTOM_ATTR_PATTERN = Pattern.compile("^fronton:(?<target>.+)$");
+
 	private Utils(){}
 
 	public static Elements select(Element element, String selector) throws InvalidSelectorException{
@@ -53,6 +57,57 @@ public final class Utils {
 		checkArgumentNotNull(argument, argumentName);
 		if(argument.isEmpty()){
 			throw new IllegalArgumentException(String.format("`%s` cannot be empty", argument));
+		}
+	}
+
+	public static void processFinalDocument(Document document, File file, CustomAttributeProcessor customAttributeProcessor) throws FrontonIOException{
+		checkArgumentNotNull(document, "document");
+		checkArgumentNotNull(file, "file");
+		checkArgumentNotNull(customAttributeProcessor, "customAttributeProcessor");
+		processCustomAttributes(document, customAttributeProcessor);
+		writeDocument(document, file);
+	}
+
+	private static void processCustomAttributes(Document document, CustomAttributeProcessor processor){
+		Elements elements = document.select("[^fronton:]");
+		elements.forEach(e -> processElementCustomAttributes(e, processor));
+	}
+
+	private static void processElementCustomAttributes(Element element, CustomAttributeProcessor processor) {
+		element.attributes().forEach(attr -> {
+			String customAttrName = attr.getKey();
+			Matcher matcher = CUSTOM_ATTR_PATTERN.matcher(customAttrName);
+			if(matcher.matches()){
+				String targetAttrName = matcher.group("target");
+				Optional<String> targetAttrValue =
+						element.hasAttr(targetAttrName)
+								? Optional.of(element.attr(targetAttrName))
+								: Optional.empty();
+				String customAttrValue = attr.getValue();
+				Optional<String> newCustomValue = processor.mapCustom(customAttrValue);
+				Optional<String> newTargetValue = processor.mapTarget(customAttrValue, targetAttrValue);
+				updateAttr(element, customAttrName, newCustomValue);
+				updateAttr(element, targetAttrName, newTargetValue);
+			}
+		});
+	}
+
+	private static void updateAttr(Element element, String name, Optional<String> value){
+		if(value.isPresent()){
+			element.attr(name, value.get());
+		} else {
+			element.removeAttr(name);
+		}
+	}
+
+	private static void writeDocument(Document document, File file) throws FrontonIOException{
+		file.getParentFile().mkdirs();
+		try(OutputStream stream = new FileOutputStream(file)) {
+			try(Writer writer = new OutputStreamWriter(stream, document.charset())){
+				writer.write(document.toString());
+			}
+		} catch (IOException e) {
+			throw new FrontonIOException(e);
 		}
 	}
 }

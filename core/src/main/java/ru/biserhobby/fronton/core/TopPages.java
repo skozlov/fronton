@@ -1,30 +1,18 @@
 package ru.biserhobby.fronton.core;
 
-import org.jsoup.nodes.Document;
-
-import java.io.*;
-
 public class TopPages implements Runnable {
 	private final Pages pages;
+	private final CustomAttributeProcessor customAttributeProcessor;
 
-	public TopPages(Pages pages){
+	public TopPages(Pages pages, CustomAttributeProcessor customAttributeProcessor){
 		Utils.checkArgumentNotNull(pages, "pages");
+		Utils.checkArgumentNotNull(customAttributeProcessor, "customAttributeProcessor");
 		this.pages = pages;
-	}
-
-	private void writeDocument(Document document, File file) throws FrontonIOException{
-		file.getParentFile().mkdirs();
-		try(OutputStream stream = new FileOutputStream(file)) {
-			try(Writer writer = new OutputStreamWriter(stream, document.charset())){
-				writer.write(document.toString());
-			}
-		} catch (IOException e) {
-			throw new FrontonIOException(e);
-		}
+		this.customAttributeProcessor = customAttributeProcessor;
 	}
 
 	@Override
 	public void run() throws FrontonException{
-		pages.processInner().parallel().forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
+		pages.processInner().parallel().forEach(entry -> Utils.processFinalDocument(entry.getKey(), entry.getValue(), customAttributeProcessor));
 	}
 }
