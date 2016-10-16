@@ -20,6 +20,7 @@ public class Build extends Task {
 	private File projectDescriptor;
 	private boolean removeCustomAttributes = true;
 	private boolean copyCustomAttributes = false;
+	private boolean copyStylesheetLinks = false;
 
 	public void setSourceBasedir(File sourceBasedir) {
 		this.sourceBasedir = sourceBasedir;
@@ -41,13 +42,18 @@ public class Build extends Task {
 		this.copyCustomAttributes = copyCustomAttributes;
 	}
 
+	public void setCopyStylesheetLinks(boolean copyStylesheetLinks) {
+		this.copyStylesheetLinks = copyStylesheetLinks;
+	}
+
 	@Override
 	public void execute() throws BuildException {
 		checkParameterNotNull(sourceBasedir, "sourceBasedir");
 		checkParameterNotNull(targetBasedir, "targetBasedir");
 		checkParameterNotNull(projectDescriptor, "projectDescriptor");
 		try {
-			ProjectParser parser = new ProjectParser(sourceBasedir, targetBasedir, getCustomAttributeProcessor());
+			ProjectParser parser = new ProjectParser(
+					sourceBasedir, targetBasedir, getCustomAttributeProcessor(), copyStylesheetLinks);
 			Project project = parser.apply(projectDescriptor);
 			project.run();
 		} catch (FrontonException e){

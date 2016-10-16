@@ -28,8 +28,11 @@ public final class Utils {
 	}
 
 	public static void insert(
-			Element template, String templateContainerSelector, Element source, String sourceContainerSelector)
-			throws InvalidSelectorException{
+			Element template,
+			String templateContainerSelector,
+			Element source,
+			String sourceContainerSelector,
+			boolean copyStylesheetLinks) throws InvalidSelectorException{
 
 		checkArgumentNotNull(template, "template");
 		checkArgumentNotEmpty(templateContainerSelector, "templateContainerSelector");
@@ -37,6 +40,10 @@ public final class Utils {
 		checkArgumentNotEmpty(sourceContainerSelector, "sourceContainerSelector");
 		String htmlToInsert = select(source, sourceContainerSelector).html();
 		select(template, templateContainerSelector).html(htmlToInsert);
+		if(copyStylesheetLinks){
+			String links = select(source, "head > link[rel=stylesheet]").outerHtml();
+			select(template, "head").append(links);
+		}
 	}
 
 	public static Document parse(File file, Charset charset) throws HtmlReadException{
@@ -101,6 +108,7 @@ public final class Utils {
 	}
 
 	private static void writeDocument(Document document, File file) throws FrontonIOException{
+		//noinspection ResultOfMethodCallIgnored
 		file.getParentFile().mkdirs();
 		try(OutputStream stream = new FileOutputStream(file)) {
 			try(Writer writer = new OutputStreamWriter(stream, document.charset())){

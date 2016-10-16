@@ -11,12 +11,14 @@ import java.util.stream.Stream;
 public class InsertPages implements BiFunction<Document, String, Stream<Map.Entry<Document, File>>> {
 	private final String sourceContainerSelector;
 	private final Pages pages;
+	private final boolean copyStylesheetLinks;
 
-	public InsertPages(String sourceContainerSelector, Pages pages) {
+	public InsertPages(String sourceContainerSelector, Pages pages, boolean copyStylesheetLinks) {
 		Utils.checkArgumentNotEmpty(sourceContainerSelector, "sourceContainerSelector");
 		Utils.checkArgumentNotNull(pages, "pages");
 		this.sourceContainerSelector = sourceContainerSelector;
 		this.pages = pages;
+		this.copyStylesheetLinks = copyStylesheetLinks;
 	}
 
 	@Override
@@ -29,7 +31,8 @@ public class InsertPages implements BiFunction<Document, String, Stream<Map.Entr
 			Document source = entry.getKey();
 			File target = entry.getValue();
 			Document templateInstance = template.clone();
-			Utils.insert(templateInstance, templateContainerSelector, source, sourceContainerSelector);
+			Utils.insert(
+					templateInstance, templateContainerSelector, source, sourceContainerSelector, copyStylesheetLinks);
 			return Stream.of(new AbstractMap.SimpleImmutableEntry<>(templateInstance, target));
 		});
 	}
