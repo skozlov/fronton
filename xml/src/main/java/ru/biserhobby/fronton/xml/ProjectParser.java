@@ -42,12 +42,14 @@ public class ProjectParser implements Function<File, Project> {
 	private final File targetBasedir;
 	private final CustomAttributeProcessor customAttributeProcessor;
 	private final boolean copyStylesheetLinks;
+	private final boolean copyScripts;
 
 	public ProjectParser(
 			File sourceBasedir,
 			File targetBasedir,
 			CustomAttributeProcessor customAttributeProcessor,
-			boolean copyStylesheetLinks) {
+			boolean copyStylesheetLinks,
+			boolean copyScripts) {
 
 		Utils.checkArgumentNotNull(sourceBasedir, "sourceBasedir");
 		Utils.checkArgumentNotNull(targetBasedir, "targetBasedir");
@@ -56,6 +58,7 @@ public class ProjectParser implements Function<File, Project> {
 		this.targetBasedir = targetBasedir;
 		this.customAttributeProcessor = customAttributeProcessor;
 		this.copyStylesheetLinks = copyStylesheetLinks;
+		this.copyScripts = copyScripts;
 	}
 
 	@Override
@@ -149,7 +152,7 @@ public class ProjectParser implements Function<File, Project> {
 	private InsertPages parseInsertPages(Element element, Charset charset){
 		String sourceContainerSelector = parseSourceContainerSelector(element);
 		Pages pages = parsePages(element, charset);
-		return new InsertPages(sourceContainerSelector, pages, copyStylesheetLinks);
+		return new InsertPages(sourceContainerSelector, pages, copyStylesheetLinks, copyScripts);
 	}
 
 	private BiFunction<org.jsoup.nodes.Document, String, Stream<Map.Entry<org.jsoup.nodes.Document, File>>>
@@ -171,7 +174,7 @@ public class ProjectParser implements Function<File, Project> {
 		File source = sourceAndTarget.getKey();
 		File target = sourceAndTarget.getValue();
 		String sourceContainerSelector = parseSourceContainerSelector(element);
-		return new Insert(source, sourceContainerSelector, target, copyStylesheetLinks);
+		return new Insert(source, sourceContainerSelector, target, copyStylesheetLinks, copyScripts);
 	}
 
 	private RemoveContainer parseRemoveContainer(Element element) {

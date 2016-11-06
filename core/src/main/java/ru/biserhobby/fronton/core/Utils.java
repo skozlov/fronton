@@ -32,7 +32,8 @@ public final class Utils {
 			String templateContainerSelector,
 			Element source,
 			String sourceContainerSelector,
-			boolean copyStylesheetLinks) throws InvalidSelectorException{
+			boolean copyStylesheetLinks,
+			boolean copyScripts) throws InvalidSelectorException{
 
 		checkArgumentNotNull(template, "template");
 		checkArgumentNotEmpty(templateContainerSelector, "templateContainerSelector");
@@ -43,6 +44,10 @@ public final class Utils {
 		if(copyStylesheetLinks){
 			String links = select(source, "head > link[rel=stylesheet]").outerHtml();
 			select(template, "head").append(links);
+		}
+		if(copyScripts){
+			String scripts = select(source, "head > script").outerHtml();
+			select(template, "head").append(scripts);
 		}
 	}
 
